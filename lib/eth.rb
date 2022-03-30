@@ -18,10 +18,12 @@ end
 
 # Loads the {Eth} module classes.
 require "eth/abi"
+require "eth/abi/function"
 require "eth/api"
 require "eth/address"
 require "eth/chain"
 require "eth/constant"
+require "eth/contract"
 require "eth/client"
 require "eth/client/http"
 require "eth/client/ipc"

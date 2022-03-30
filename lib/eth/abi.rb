@@ -43,7 +43,7 @@ module Eth
     # @return [String] the encoded ABI data.
     def encode(types, args)
 
-      # prase all types
+      # parse all types
       parsed_types = types.map { |t| Type.parse(t) }
 
       # prepare the "head"

@@ -149,6 +149,51 @@ module Eth
       end
     end
 
+    # Execute a call on a contract with given payload
+    #
+    # @param sender [Eth::Key] the sender private key.
+    # @param to [Eth::Address] the contract address.
+    # @param payload [String] the transfer amount in Wei.
+    # @return [String] the called function outputs.
+    def call(sender, to, data)
+      payload = {
+        chain_id: chain_id,
+        nonce: get_nonce(sender.address),
+        max_gas_fee: 50 * Eth::Unit::GWEI,
+        priority_fee: 0,
+        gas_limit: Eth::Tx.estimate_intrinsic_gas(payload) + 10000,
+        value: 0,
+        to: to,
+        from: sender.address,
+        data: data
+      }
+
+      eth_call(payload)['result']
+    end
+
+    # Execute a transaction on a contract with given payload
+    #
+    # @param sender [Eth::Key] the sender private key.
+    # @param to [Eth::Address] the contract address.
+    # @param payload [String] the transfer amount in Wei.
+    # @return [String] the transaction hash.
+    def transact(sender, to, data)
+      tx = Eth::Tx.new({
+        chain_id: chain_id,
+        nonce: get_nonce(sender.address),
+        max_gas_fee: 50 * Eth::Unit::GWEI,
+        priority_fee: 0,
+        gas_limit: 230_420,
+        value: 0,
+        to: to,
+        from: sender.address,
+        data: data
+      })
+
+      tx.sign sender
+      eth_send_raw_transaction(tx.hex)["result"]
+    end
+
     # Gives control over resetting the RPC request ID back to zero.
     # Usually not needed.
     #
@@ -166,7 +211,7 @@ module Eth
       !mined_tx.nil? && !mined_tx["result"].nil? && !mined_tx["result"]["blockNumber"].nil?
     end
 
-    # Waits for an transaction to be mined by the connected chain.
+    # Waits for a transaction to be mined by the connected chain.
     #
     # @param hash [String] the transaction hash.
     # @return [String] the transactin hash once the transaction is mined.
