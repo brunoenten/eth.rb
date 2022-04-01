@@ -43,7 +43,7 @@ module Eth
     def transact(payload)
       txHash = client.transact(@sender, self.address, payload)
       client.wait_for_tx(txHash)
-      client.eth_get_transaction_receipt(txHash)['result']['status'] == '0x1'
+      client.eth_get_transaction_receipt(txHash)['result']['status'] == '0x1' rescue true
     end
   end
 end
