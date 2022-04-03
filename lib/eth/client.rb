@@ -178,11 +178,13 @@ module Eth
     # @param payload [String] the transfer amount in Wei.
     # @return [String] the transaction hash.
     def transact(sender, to, data)
+      baseFee = Integer(eth_base_fee['result'])
+      priorityFee = Integer(eth_max_priority_fee_per_gas['result'])
       tx = Eth::Tx.new({
         chain_id: chain_id,
         nonce: get_nonce(sender.address),
-        max_gas_fee: 200 * Eth::Unit::GWEI,
-        priority_fee: 0,
+        max_gas_fee: baseFee,
+        priority_fee: priorityFee,
         gas_limit: 230_420,
         value: 0,
         to: to,

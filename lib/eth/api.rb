@@ -101,6 +101,7 @@ module Eth
       "debug_writeMutexProfile",
       "eth_accounts",
       "eth_blockNumber",
+      "eth_baseFee",
       "eth_call",
       "eth_chainId",
       "eth_coinbase",
