@@ -181,7 +181,7 @@ module Eth
       tx = Eth::Tx.new({
         chain_id: chain_id,
         nonce: get_nonce(sender.address),
-        max_gas_fee: 50 * Eth::Unit::GWEI,
+        max_gas_fee: 80 * Eth::Unit::GWEI,
         priority_fee: 0,
         gas_limit: 230_420,
         value: 0,
