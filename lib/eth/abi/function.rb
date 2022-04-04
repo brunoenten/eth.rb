@@ -55,7 +55,12 @@ module Eth
         payload = '0x' + signature_digest + encoded_args
         if ['view', 'pure'].include?(stateMutability)
           result = contract.call(payload)
-          return ::Eth::Abi.decode(outputs.map {|o| o['type']}, result)
+          decoded = ::Eth::Abi.decode(outputs.map {|o| o['type']}, result)
+          if outputs.count == 1
+            return decoded.first
+          else
+            return decoded
+          end
         else
           contract.transact(payload)
         end
