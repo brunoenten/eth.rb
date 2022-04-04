@@ -184,7 +184,34 @@ module Eth
         chain_id: chain_id,
         nonce: get_nonce(sender.address),
         max_gas_fee: baseFee,
-        priority_fee: priorityFee,
+        priority_fee: priorityFee + 2 * Eth::Unit::GWEI,
+        gas_limit: 230_420,
+        value: 0,
+        to: to,
+        from: sender.address,
+        data: data
+      })
+
+      tx.sign sender
+      eth_send_raw_transaction(tx.hex)["result"]
+    end
+
+
+    # Overwrite a pending transaction (Note: to be successful, priority_fee should be higher than for the pending transaction)
+    #
+    # @param sender [Eth::Key] the sender private key.
+    # @param to [Eth::Address] the contract address.
+    # @param payload [String] the transfer amount in Wei.
+    # @param nonce [Integer] nonce of the transaction to overwrite.
+    # @param priority_fee [Integer] priority fee for dynamic gas fee, in gWEI
+    # @return [String] the transaction hash.
+    def overwrite_transaction(sender, to, data, nonce, priority_fee)
+      baseFee = Integer(eth_base_fee['result'])
+      tx = Eth::Tx.new({
+        chain_id: chain_id,
+        nonce: nonce,
+        max_gas_fee: baseFee,
+        priority_fee: priority_fee * Eth::Unit::GWEI,
         gas_limit: 230_420,
         value: 0,
         to: to,
