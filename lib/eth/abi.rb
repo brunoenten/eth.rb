@@ -384,7 +384,7 @@ module Eth
 
         # address from hexa-decimal address with 0x prefix
         return Util.zpad_hex arg
-      elsif arg.size == 42 and (arg[0, 2] == "0x" or arg[0, 2] == "0X")
+      elsif arg.size == 42 and arg[0, 2] == "0x"
 
         # address from hexa-decimal address
         return Util.zpad_hex arg[2..-1]
