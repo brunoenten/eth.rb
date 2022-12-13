@@ -30,6 +30,10 @@ module Eth
       @functions ||= abi.select {|e| e['type'] == 'function' and !e['name'].empty? }.map { |f| ::Eth::Abi::Function.new(self, f) }
     end
 
+    def events
+      @events ||= abi.select {|e| e['type'] == 'event' and !e['name'].empty? }.map { |f| ::Eth::Abi::Event.new(self, f['name'], f['inputs']) }
+    end
+
     def method_missing(m, *args)
       function = functions.detect { |f| f.name == m.to_s}
       return super if function.nil?
@@ -44,6 +48,46 @@ module Eth
       txHash = client.transact(@sender, self.address, payload)
       client.wait_for_tx(txHash)
       client.eth_get_transaction_receipt(txHash)['result']['status'] == '0x1' rescue true
+    end
+
+    def subscribe_to_event(event_name, fromBlock='latest', toBlock='latest')
+      event = events.detect { |e| e.name == event_name.to_s}
+      return false unless event
+
+      client.eth_new_filter({
+        fromBlock: fromBlock,
+        toBlock: toBlock,
+        address: Eth::Address.new(address),
+        topics: [event.signature_digest]
+      })['result']
+    end
+
+    def subscription_new_events(filter_id)
+      client.eth_get_filter_changes(filter_id)['result'].map { |result| parse_event(result)}.compact
+    end
+
+    def subscription_all_events(filter_id)
+      client.eth_get_filter_logs(filter_id)['result'].map { |result| parse_event(result)}.compact
+    end
+
+    def fetch_events(event_name, fromBlock='latest', toBlock='latest')
+      event = events.detect { |e| e.name == event_name.to_s}
+      return false unless event
+
+      client.eth_get_logs({
+        fromBlock: fromBlock,
+        toBlock: toBlock,
+        address: Eth::Address.new(address),
+        topics: [event.signature_digest]
+      })['result'].map { |result| parse_event(result)}.compact
+    end
+
+    def parse_event(event_hash)
+      event = events.detect { |e| e.signature_digest == event_hash['topics'].first }
+      return nil unless event
+
+      event.transaction = event_hash
+      event
     end
   end
 end
