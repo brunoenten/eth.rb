@@ -70,21 +70,23 @@ module Eth
       client.eth_get_filter_logs(filter_id)['result'].map { |result| parse_event(result)}.compact
     end
 
-    def fetch_events(event_name, fromBlock='latest', toBlock='latest')
-      event = events.detect { |e| e.name == event_name.to_s}
-      return false unless event
+    def fetch_events(event_names, fromBlock='latest', toBlock='latest')
+      event_names = [event_names] unless event_names.is_a?(Array)
+      selected_events = events.select { |e| event_names.include?(e.name) }
+      return false if selected_events.empty?
 
       client.eth_get_logs({
         fromBlock: fromBlock,
         toBlock: toBlock,
         address: Eth::Address.new(address),
-        topics: [event.signature_digest]
+        topics: [selected_events.map(&:signature_digest)]
       })['result'].map { |result| parse_event(result)}.compact
     end
 
     def parse_event(event_hash)
       event = events.detect { |e| e.signature_digest == event_hash['topics'].first }
       return nil unless event
+      event = event.dup
 
       event.transaction = event_hash
       event

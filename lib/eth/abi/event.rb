@@ -42,12 +42,24 @@ module Eth
       end
 
       def decoded_args
-        data = transaction['data']
-        return nil unless data
+        @decoded_args ||= decode_args
+      end
 
-        decoded_arr = ::Eth::Abi.decode(inputs.map { |i| i['type'] }, data)
+      def decode_args
+        decoded_arr = []
+        index = 1
+        inputs.select {|i| i['indexed']}.each do |input|
+          decoded_arr << ::Eth::Abi.decode([input['type']], transaction['topics'][index])
+          index +=1
+        end
+
+        data = transaction['data']
+        if data
+          decoded_arr += ::Eth::Abi.decode(inputs.reject {|i| i['indexed']}.map { |i| i['type'] }, data)
+        end
+
         args_hash = {}
-        inputs.each { |i|args_hash[i['name']] = decoded_arr.shift } if decoded_arr
+        inputs.each { |i|args_hash[i['name']] = decoded_arr.shift } unless decoded_arr.empty?
         args_hash
       end
     end
